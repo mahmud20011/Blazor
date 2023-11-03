@@ -1,0 +1,48 @@
+﻿@page "/shelterbookinglist"
+@page "/shelterbookinglist/{Id:int}"
+@using Blazor.Shared
+@inject HttpClient Http
+@using System.Net.Http
+
+<h1>Shelter Booking List</h1>
+
+@if (shelterBookings != null)
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Location</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var booking in shelterBookings)
+            {
+                <tr>
+                    <td>@booking.Location</td>
+                    <td>@booking.Phone</td>
+                    <td>@booking.Email</td>
+                    <td>@booking.Time</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>Loading shelter bookings...</p>
+}
+
+@code {
+    [Parameter]
+    public int? Id { set; get; }
+    private List<ShelterBooking>? shelterBookings; // Use nullable reference type to indicate it can be null
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Fetch the list of shelter bookings from the server API
+        shelterBookings = await Http.GetFromJsonAsync<List<ShelterBooking>>("api/shelterbooking/getall");
+    }
+}

@@ -1,0 +1,95 @@
+﻿@page "/shelterbooking"
+@using Blazor.Shared;
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+
+<h1 class="mb-3 mt-3">Shelter Booking List</h1>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Location</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Time</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var booking in bookingList)
+        {
+            <tr>
+                <td>@booking.Location</td>
+                <td>@booking.Phone</td>
+                <td>@booking.Email</td>
+                <td>@booking.Time</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<img src="busy.gif" style="display:@busyDisplayStyle" />
+
+<h1 class="mb-3 mt-3">Book Shelter</h1>
+<EditForm EditContext="@aEditContext" class="row p-3" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="col-md-12 mb-3">
+        <label for="Location">Location</label>
+        <InputText id="Location" @bind-Value="booking.Location" class="form-control" />
+    </div>
+    <div class="col-md-12 mb-3">
+        <label for="Phone">Phone</label>
+        <InputText id="Phone" @bind-Value="booking.Phone" class="form-control" />
+    </div>
+    <div class="col-md-12 mb-3">
+        <label for="Email">Email</label>
+        <InputText id="Email" @bind-Value="booking.Email" class="form-control" />
+    </div>
+    <div class="col-md-12 mb-3">
+        <label for="Time">Time</label>
+        <InputDate id="Time" @bind-Value="booking.Time" class="form-control" />
+    </div>
+
+    <div class="col-12 mb-3">
+        <button type="submit" class="btn btn-primary">Book</button>
+    </div>
+</EditForm>
+
+@code {
+    private void NavigateToShelterBookingList()
+    {
+        Navigation.NavigateTo("/shelterbookinglist");
+    }
+
+
+    private string busyDisplayStyle = "none";
+    private ShelterBooking booking = new ShelterBooking();
+
+    private ShelterBooking[] bookingList = new ShelterBooking[0];
+
+    private EditContext aEditContext;
+
+    protected override void OnInitialized()
+    {
+        aEditContext = new EditContext(booking);
+    }
+
+    public async Task HandleValidSubmit()
+    {
+        await BookShelter();
+    }
+
+    private async Task BookShelter()
+    {
+        await Http.PostAsJsonAsync<ShelterBooking>("api/shelterbooking/book", booking);
+        bookingList = await Http.GetFromJsonAsync<ShelterBooking[]>("api/shelterbooking/getall");
+        booking = new(); // clear fields in the form
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        busyDisplayStyle = "block"; // turn on busy indicator
+        bookingList = await Http.GetFromJsonAsync<ShelterBooking[]>("api/shelterbooking/getall");
+        busyDisplayStyle = "none"; // turn off busy indicator
+    }
+}
